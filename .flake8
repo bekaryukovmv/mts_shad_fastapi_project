@@ -1,0 +1,29 @@
+[flake8]
+max-line-length = 120
+select = C,E,F,W,B,B950
+extend-ignore = E203, E501, E704
+inline-quotes = double
+multiline-quotes = double
+docstring-quotes = double
+
+exclude =
+    .tox,
+    migrations,
+    dist,
+    build,
+    hadoop_archive_plugin,
+    virtualenv,
+    venv*,
+    ve,
+    .env,
+    .venv*,
+    tox.ini,
+    docker,
+    Jenkinsfile,
+    dags,
+    setup.py,
+    docs,
+    version.py,
+    tests,
+    .git,
+    __pycache__
