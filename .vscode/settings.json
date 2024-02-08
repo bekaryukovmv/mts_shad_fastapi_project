@@ -14,6 +14,7 @@
   // "python.analysis.enablePytestSupport": true,
   "isort.args": ["--settings-file", "pyproject.toml"],
   "black-formatter.args": ["--config", "pyproject.toml"],
+  "isort.importStrategy": "fromEnvironment",
   "flake8.args": [
     "--config=/home/maxim/learning/mts_shad/fastapi_project/.flake8"
   ]

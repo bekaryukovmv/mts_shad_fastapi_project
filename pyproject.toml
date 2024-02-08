@@ -30,10 +30,6 @@ ensure_newline_before_comments = true
 line_length = 120
 
 
-[tool.mypy]
-python_version = 3.11
-
-
 [tool.poetry]
 name = "fastapi-project"
 version = "0.1.0"

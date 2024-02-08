@@ -11,13 +11,15 @@ from schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 
 books_router = APIRouter(tags=["books"], prefix="/books")
 
-# Бодьше не симулируем хранилище данных. Подключаемся к реальному, через сессию.
+# Больше не симулируем хранилище данных. Подключаемся к реальному, через сессию.
 DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 
 
 # Ручка для создания записи о книге в БД. Возвращает созданную книгу.
 @books_router.post("/", response_model=ReturnedBook, status_code=status.HTTP_201_CREATED)  # Прописываем модель ответа
-async def create_book(book: IncomingBook, session: DBSession):  # прописываем модель валидирующую входные данные и сессию как зависимость.
+async def create_book(
+    book: IncomingBook, session: DBSession
+):  # прописываем модель валидирующую входные данные и сессию как зависимость.
     # это - бизнес логика. Обрабатываем данные, сохраняем, преобразуем и т.д.
     new_book = Book(
         title=book.title,
