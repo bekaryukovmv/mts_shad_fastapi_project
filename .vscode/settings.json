@@ -15,7 +15,7 @@
   "isort.args": ["--settings-file", "pyproject.toml"],
   "black-formatter.args": ["--config", "pyproject.toml"],
   "isort.importStrategy": "fromEnvironment",
-  "flake8.args": [
-    "--config=/home/maxim/learning/mts_shad/fastapi_project/.flake8"
-  ]
+  "flake8.importStrategy": "fromEnvironment",
+  "black-formatter.importStrategy": "fromEnvironment",
+  "flake8.args": ["--config=.flake8"]
 }
