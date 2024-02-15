@@ -1,21 +1,12 @@
 {
-  "python.analysis.extraPaths": ["${workspaceFolder}"],
-  // "python.testing.pytestArgs": [
-  //   "tests"
-  // ],
-  // "python.testing.unittestEnabled": false,
-  // "python.testing.pytestEnabled": true,
-  // "python.testing.cwd": "${workspaceFolder}/profiler_backend",
-  // "pythonTestExplorer.testFramework": "pytest",
-  // "python.testing.autoTestDiscoverOnSaveEnabled": true,
-  // "pythonTestExplorer.outputs.showOutputsOnRun": true,
-  // "pythonTestExplorer.outputs.collectOutputs": true,
-  // "debug.allowBreakpointsEverywhere": true,
-  // "python.analysis.enablePytestSupport": true,
+  "python.analysis.extraPaths": ["${workspaceFolder}/src"],
   "isort.args": ["--settings-file", "pyproject.toml"],
   "black-formatter.args": ["--config", "pyproject.toml"],
   "isort.importStrategy": "fromEnvironment",
   "flake8.importStrategy": "fromEnvironment",
   "black-formatter.importStrategy": "fromEnvironment",
-  "flake8.args": ["--config=.flake8"]
+  "flake8.args": ["--config=.flake8"],
+  "python.testing.pytestArgs": ["src/tests"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

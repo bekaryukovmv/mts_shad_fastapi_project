@@ -5,9 +5,9 @@ from icecream import ic
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from configurations.database import get_async_session
-from models.books import Book
-from schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
+from src.configurations.database import get_async_session
+from src.models.books import Book
+from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 
 books_router = APIRouter(tags=["books"], prefix="/books")
 

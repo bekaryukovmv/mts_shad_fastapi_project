@@ -3,21 +3,19 @@ from typing import AsyncGenerator, Callable, Optional
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
-from models.base import BaseModel
+from src.models.base import BaseModel
+
+from .settings import settings
 
 logger = logging.getLogger("__name__")
 
-
-# from .settings import get_settings
-
-# settings = get_settings()
 
 __all__ = ["global_init", "get_async_session", "create_db_and_tables"]
 
 __async_engine: Optional[AsyncEngine] = None
 __session_factory: Optional[Callable[[], AsyncSession]] = None
 
-SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5445/fastapi_project_db"
+SQLALCHEMY_DATABASE_URL = settings.database_url
 
 
 def global_init() -> None:
@@ -52,7 +50,7 @@ async def get_async_session() -> AsyncGenerator:
 
 
 async def create_db_and_tables():
-    from models.books import Book  # noqa F401
+    from src.models.books import Book  # noqa F401
 
     global __async_engine
 
@@ -60,5 +58,5 @@ async def create_db_and_tables():
         raise ValueError({"message": "You must call global_init() before using this method."})
 
     async with __async_engine.begin() as conn:
-        await conn.run_sync(BaseModel.metadata.drop_all)
+        # await conn.run_sync(BaseModel.metadata.drop_all)
         await conn.run_sync(BaseModel.metadata.create_all)

@@ -6,30 +6,28 @@
   "configurations": [
     {
       "name": "Python: FastAPI",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["main:app", "--host", "127.0.0.1", "--reload"],
+      "args": ["src.main:app", "--host", "127.0.0.1", "--reload"],
       "jinja": true,
       "justMyCode": false
+    },
+    {
+      "name": "Project Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "args": [
+        "tests",
+        "-ra",
+        "--color=yes",
+        "--verbosity=2",
+        "-c=${workspaceFolder}/src/pytest.ini"
+      ],
+      "justMyCode": false
     }
-    //   {
-    //     "name": "Project Tests",
-    //     "type": "python",
-    //     "request": "launch",
-    //     "module": "pytest",
-    //     "console": "integratedTerminal",
-    //     "cwd": "${workspaceFolder}/fastapi_template",
-    //     "args": [
-    //       "tests",
-    //       "-ra",
-    //       "-v",
-    //       "--color=yes",
-    //       "--verbosity=2",
-    //       "-c=${workspaceFolder}/fastapi_template/pytest.ini"
-    //     ],
-    //     "jinja": true,
-    //     "justMyCode": false
-    //   }
   ]
 }
