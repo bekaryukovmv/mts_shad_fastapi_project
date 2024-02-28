@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):  # Рекомендуется теперь в�
 # в нем можно указать разные параметры для сваггера и для ручек (эндпоинтов).
 def create_application():
     return FastAPI(
-        title="Book Library App",
+        title="Book Library App Modified",
         description="Учебное приложение для группы MTS Shad",
         version="0.0.1",
         responses={404: {"description": "Not Found!"}},
