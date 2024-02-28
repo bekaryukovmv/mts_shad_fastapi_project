@@ -34,7 +34,7 @@ line_length = 120
 name = "fastapi-project"
 version = "0.1.0"
 description = ""
-authors = ["Бекарюков Максим Викторович <mvbekaryuk@mts.ru>"]
+authors = ["Бекарюков Максим Викторович <mvbekaryuk@mts.ru>", "Парамонов Святослав Михайлович <svja7ik@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -47,6 +47,7 @@ orjson = "^3.9.12"
 sqlalchemy = "^2.0.25"
 pydantic-settings = "^2.1.0"
 asyncpg = "^0.29.0"
+bcrypt = "^4.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
