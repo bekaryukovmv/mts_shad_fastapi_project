@@ -4,7 +4,6 @@ from sqlalchemy import select
 
 from src.models import books, sellers
 
-
 # Тест на ручку создающую продавца
 @pytest.mark.asyncio
 async def test_create_seller(async_client):
@@ -71,8 +70,7 @@ async def test_get_single_seller(db_session, async_client):
     # Создаем продавцов вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
     seller_1 = sellers.Seller(
-        first_name="Ivan", last_name="Ivanov", email="iivanov@mail.ru", password="123"
-    )
+        first_name="Ivan", last_name="Ivanov", email="iivanov@mail.ru", password="123")
 
     db_session.add_all([seller_1])
     await db_session.flush()
@@ -100,6 +98,7 @@ async def test_get_single_seller(db_session, async_client):
                         "year": 1997,
                         "count_pages": 200,
                         "id": book.id,
+                        "seller_id": seller_1.id
                     }
 
         ]
@@ -134,16 +133,14 @@ async def test_update_seller(db_session, async_client):
     # Создаем продавца вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
     seller = sellers.Seller(
-        first_name="Ivan", last_name="Ivanov", email="iivanov@mail.ru", password="123"
-    )
+        first_name="Ivan", last_name="Ivanov", email="iivanov@mail.ru", password="123")
 
     db_session.add(seller)
     await db_session.flush()
 
     response = await async_client.put(
         f"/api/v1/sellers/{seller.id}",
-        json={"id": seller.id, "first_name": "Petr", "last_name": "Petrov", "email": "petrov@mail.ru", "password": "321"},
-    )
+        json={"id": seller.id, "first_name": "Petr", "last_name": "Petrov", "email": "petrov@mail.ru"})
 
     assert response.status_code == status.HTTP_200_OK
     await db_session.flush()
