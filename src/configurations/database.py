@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from typing import AsyncGenerator, Callable, Optional
 
@@ -26,11 +27,12 @@ def global_init() -> None:
         return
 
     if not __async_engine:
-        __async_engine = create_async_engine(url=SQLALCHEMY_DATABASE_URL, echo=False)  # TODO
+        __async_engine = create_async_engine(url=SQLALCHEMY_DATABASE_URL, echo=True)  # TODO
 
     __session_factory = async_sessionmaker(__async_engine)
 
 
+@contextlib.asynccontextmanager
 async def get_async_session() -> AsyncGenerator:
     global __session_factory
 

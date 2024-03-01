@@ -31,6 +31,7 @@ class IncomingBook(BaseBook):
 class ReturnedBook(BaseBook):
     id: int
     count_pages: int
+    seller_id: int
 
 
 # Класс для возврата массива объектов "Книга"
