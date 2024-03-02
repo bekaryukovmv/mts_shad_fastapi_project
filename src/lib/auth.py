@@ -67,5 +67,5 @@ async def current_seller(auth: JwtAuthorizationCredentials = Security(access_sec
         raise HTTPException(401, "Вход не выполнен")
     seller = await seller_from_credentials(auth)
     if seller is None:
-        raise HTTPException(404, "Авторизованный пользователь не найден")
+        raise HTTPException(404, "Авторизованный продавец не найден")
     return seller

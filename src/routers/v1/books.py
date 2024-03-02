@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Dict, Sequence
 
 from fastapi import APIRouter, Depends, Response, status, HTTPException
 from icecream import ic
@@ -19,9 +19,9 @@ DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 
 # Ручка для создания записи о книге в БД. Возвращает созданную книгу.
 @books_router.post(
-    "/", status_code=status.HTTP_201_CREATED, response_model=ReturnedBook,
+    "/", status_code=status.HTTP_201_CREATED,
 )  # Прописываем модель ответа
-async def create_book(book: IncomingBook, seller: Seller = Depends(current_seller)):
+async def create_book(book: IncomingBook, seller: Seller = Depends(current_seller)) -> ReturnedBook:
     new_book = await BookDAO.add_new_book(
         title=book.title,
         author=book.author,
@@ -44,8 +44,8 @@ async def get_all_books(session: DBSession):
 
 
 # Ручка для получения книги по ее ИД
-@books_router.get("/{book_id}", response_model=ReturnedBook)
-async def get_book(book_id: int, session: DBSession):
+@books_router.get("/{book_id}")
+async def get_book(book_id: int, session: DBSession) -> ReturnedBook:
     res = await session.get(Book, book_id)
     return res
 
@@ -76,5 +76,4 @@ async def update_book(
         updated_book = await BookDAO.update_book(book_id=book_id, new_data=new_data)
 
         return updated_book
-
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Такая книга не существует")

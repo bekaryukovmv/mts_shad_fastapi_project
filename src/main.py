@@ -17,13 +17,11 @@ async def lifespan(app: FastAPI):  # Рекомендуется теперь в�
     await delete_db_and_tables()
 
 
-# Само приложение fastApi. именно оно запускается сервером и служит точкой входа
-# в нем можно указать разные параметры для сваггера и для ручек (эндпоинтов).
 def create_application():
     return FastAPI(
-        title="Book Library App Modified",
-        description="Учебное приложение для группы MTS Shad",
-        version="0.0.1",
+        title="New Book Library App",
+        description="Доработанное учебное приложение для группы MTS Shad",
+        version="0.1.0",
         responses={404: {"description": "Not Found!"}},
         default_response_class=ORJSONResponse,  # Подключаем быстрый сериализатор,
         lifespan=lifespan,
@@ -35,12 +33,6 @@ app = create_application()
 
 def _configure():
     app.include_router(v1_router)
-
-
-# @app.on_event("startup")  # Вместо этого теперь рекомендуется lifespan
-# async def startup_event():
-#     global_init()
-#     await create_db_and_tables()
 
 
 _configure()
