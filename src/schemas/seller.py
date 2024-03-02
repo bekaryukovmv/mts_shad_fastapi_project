@@ -21,3 +21,9 @@ class BaseSeller(BaseModel):
 
 class SellerDTO(BaseSeller):
     books: list["ReturnedBook"]
+
+
+class SellerUpdate(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
