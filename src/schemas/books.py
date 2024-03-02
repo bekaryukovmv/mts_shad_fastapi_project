@@ -9,6 +9,7 @@ class BaseBook(BaseModel):
     title: str
     author: str
     year: int
+    seller_id: int
 
 
 # Класс для валидации входящих данных. Не содержит id так как его присваивает БД.
@@ -36,3 +37,12 @@ class ReturnedBook(BaseBook):
 # Класс для возврата массива объектов "Книга"
 class ReturnedAllBooks(BaseModel):
     books: list[ReturnedBook]
+
+
+# Костыль для того, чтобы можно было получать книгу без seller_id
+class ReturnedBookFromSeller(BaseModel):
+    id: int
+    title: str
+    author: str
+    year: int
+    count_pages: int

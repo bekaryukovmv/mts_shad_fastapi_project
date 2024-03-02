@@ -47,6 +47,7 @@ orjson = "^3.9.12"
 sqlalchemy = "^2.0.25"
 pydantic-settings = "^2.1.0"
 asyncpg = "^0.29.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 
 
 [tool.poetry.group.dev.dependencies]

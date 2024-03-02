@@ -2,7 +2,7 @@ import pytest
 from fastapi import status
 from sqlalchemy import select
 
-from src.models import books
+from src.models import books, sellers
 
 result = {
     "books": [
@@ -14,8 +14,15 @@ result = {
 
 # Тест на ручку создающую книгу
 @pytest.mark.asyncio
-async def test_create_book(async_client):
-    data = {"title": "Wrong Code", "author": "Robert Martin", "pages": 104, "year": 2007}
+async def test_create_book(db_session, async_client):
+    # Создание продавца напрямую в DB
+    seller = sellers.Seller(first_name="Joe", last_name="Peachy", email="JoePeachy@email.com", password="pass")
+
+    db_session.add(seller)
+    await db_session.flush()
+
+    # Создание книги через POST
+    data = {"title": "Wrong Code", "author": "Robert Martin", "pages": 104, "year": 2007, "seller_id": seller.id}
     response = await async_client.post("/api/v1/books/", json=data)
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -28,16 +35,23 @@ async def test_create_book(async_client):
         "author": "Robert Martin",
         "count_pages": 104,
         "year": 2007,
+        "seller_id": seller.id
     }
 
 
 # Тест на ручку получения списка книг
 @pytest.mark.asyncio
 async def test_get_books(db_session, async_client):
+    # Создание продавца напрямую в DB
+    seller = sellers.Seller(first_name="Joe", last_name="Peachy", email="JoePeachy@email.com", password="pass")
+
+    db_session.add(seller)
+    await db_session.flush()
+
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
-    book_2 = books.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104)
+    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104, seller_id=seller.id)
+    book_2 = books.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104, seller_id=seller.id)
 
     db_session.add_all([book, book_2])
     await db_session.flush()
@@ -46,13 +60,13 @@ async def test_get_books(db_session, async_client):
 
     assert response.status_code == status.HTTP_200_OK
 
-    assert len(response.json()["books"]) == 2  # Опасный паттерн! Если в БД есть данные, то тест упадет
+    # assert len(response.json()["books"]) == 2  # Опасный паттерн! Если в БД есть данные, то тест упадет
 
     # Проверяем интерфейс ответа, на который у нас есть контракт.
     assert response.json() == {
         "books": [
-            {"title": "Eugeny Onegin", "author": "Pushkin", "year": 2001, "id": book.id, "count_pages": 104},
-            {"title": "Mziri", "author": "Lermontov", "year": 1997, "id": book_2.id, "count_pages": 104},
+            {"title": "Eugeny Onegin", "author": "Pushkin", "year": 2001, "id": book.id, "count_pages": 104, "seller_id": seller.id},
+            {"title": "Mziri", "author": "Lermontov", "year": 1997, "id": book_2.id, "count_pages": 104, "seller_id": seller.id},
         ]
     }
 
@@ -60,10 +74,16 @@ async def test_get_books(db_session, async_client):
 # Тест на ручку получения одной книги
 @pytest.mark.asyncio
 async def test_get_single_book(db_session, async_client):
+    # Создание продавца напрямую в DB
+    seller = sellers.Seller(first_name="Joe", last_name="Peachy", email="JoePeachy@email.com", password="pass")
+
+    db_session.add(seller)
+    await db_session.flush()
+    
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
-    book_2 = books.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104)
+    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104, seller_id=seller.id)
+    book_2 = books.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104, seller_id=seller.id)
 
     db_session.add_all([book, book_2])
     await db_session.flush()
@@ -79,15 +99,22 @@ async def test_get_single_book(db_session, async_client):
         "year": 2001,
         "count_pages": 104,
         "id": book.id,
+        "seller_id": seller.id
     }
 
 
-# Тест на ручку удаления книги
+# # Тест на ручку удаления книги
 @pytest.mark.asyncio
 async def test_delete_book(db_session, async_client):
+    # Создание продавца напрямую в DB
+    seller = sellers.Seller(first_name="Joe", last_name="Peachy", email="JoePeachy@email.com", password="pass")
+
+    db_session.add(seller)
+    await db_session.flush()
+    
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
+    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104, seller_id=seller.id)
 
     db_session.add(book)
     await db_session.flush()
@@ -105,16 +132,22 @@ async def test_delete_book(db_session, async_client):
 # Тест на ручку обновления книги
 @pytest.mark.asyncio
 async def test_update_book(db_session, async_client):
+    # Создание продавца напрямую в DB
+    seller = sellers.Seller(first_name="Joe", last_name="Peachy", email="JoePeachy@email.com", password="pass")
+
+    db_session.add(seller)
+    await db_session.flush()
+    
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
+    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104, seller_id=seller.id)
 
     db_session.add(book)
     await db_session.flush()
 
     response = await async_client.put(
         f"/api/v1/books/{book.id}",
-        json={"title": "Mziri", "author": "Lermontov", "count_pages": 100, "year": 2007, "id": book.id},
+        json={"title": "Mziri", "author": "Lermontov", "count_pages": 100, "year": 2007, "id": book.id, "seller_id": seller.id},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -127,3 +160,4 @@ async def test_update_book(db_session, async_client):
     assert res.count_pages == 100
     assert res.year == 2007
     assert res.id == book.id
+    assert res.seller_id == seller.id
