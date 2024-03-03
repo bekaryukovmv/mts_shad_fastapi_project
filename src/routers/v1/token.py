@@ -1,8 +1,11 @@
-from typing import Annotated
+"""
+A router for working with token.
+POST /token - method for obtaining a JWT token by login and password
+"""
 
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-from icecream import ic
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.configurations.database import get_async_session
@@ -13,11 +16,9 @@ from src.configurations.security import validate_password, encode_jwt
 
 token_router = APIRouter(tags=["token"], prefix="/token")
 
-# Больше не симулируем хранилище данных. Подключаемся к реальному, через сессию.
 DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 
 
-# Ручка для получения JWT-токена по email и password
 @token_router.post("/", status_code=status.HTTP_201_CREATED, response_model=TokenInfo)
 async def auth_user(user: LoginSchema, session: DBSession):
     query = (

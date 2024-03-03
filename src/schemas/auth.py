@@ -1,3 +1,7 @@
+"""
+A model for validating the data that the user pass to receive the token.
+"""
+
 from pydantic import BaseModel
 
 __all__ = ["LoginSchema"]

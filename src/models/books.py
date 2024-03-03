@@ -1,3 +1,13 @@
+"""
+The model for the "Book" entity. Contains information about book.
+id - book id
+title - the title of the book
+author - the author of the book
+year - year of publication
+count_pages - number of pages
+seller_id - the ID of the seller who sells this book
+"""
+
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 

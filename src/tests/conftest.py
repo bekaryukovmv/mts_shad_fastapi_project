@@ -1,6 +1,7 @@
-""" Это модуль с фикстурами для пайтеста.
-Фикстуры - это особые функции, которые не надо импортировать явно.
-Сам пайтест подтягивает их по имени из файла conftest.py
+"""
+Module with fixtures for the pytest.
+Fixtures are special functions that do not need to be imported explicitly.
+The patent itself pulls them up by name from the file conftest.py
 """
 
 import asyncio
@@ -15,20 +16,20 @@ from src.models import books  # noqa
 from src.models.base import BaseModel
 from src.models.books import Book  # noqa F401
 
-# Переопределяем движок для запуска тестов и подключаем его к тестовой базе.
-# Это решает проблему с сохранностью данных в основной базе приложения.
-# Фикстуры тестов их не зачистят.
-# и обеспечивает чистую среду для запуска тестов. В ней не будет лишних записей.
+# Redefine the engine for running tests and connect it to the test database.
+# This solves the problem of data security in the main database of the application.
+# Test fixtures won't clean them up.
+# and provides a clean environment for running tests. There will be no unnecessary entries in it.
 async_test_engine = create_async_engine(
     settings.database_test_url,
     echo=True,
 )
 
-# Создаем фабрику сессий для тестового движка.
+# Creating a session factory for the test engine.
 async_test_session = async_sessionmaker(async_test_engine, expire_on_commit=False, autoflush=False)
 
 
-# Получаем цикл событий для асинхорнного потока выполнения задач.
+# We get an event loop for the asynchronous task execution flow.
 @pytest_asyncio.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for each test case."""
@@ -38,7 +39,6 @@ def event_loop():
     loop.close()
 
 
-# Создаем таблицы в тестовой БД. Предварительно удаляя старые.
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def create_tables() -> None:
     """Create tables in DB."""
@@ -47,7 +47,7 @@ async def create_tables() -> None:
         await connection.run_sync(BaseModel.metadata.create_all)
 
 
-# Создаем сессию для БД используемую для тестов
+# Create session
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with async_test_engine.connect() as connection:
@@ -56,7 +56,7 @@ async def db_session():
             await session.rollback()
 
 
-# Коллбэк для переопределения сессии в приложении
+# Callback to redefine the session in the application
 @pytest.fixture(scope="function")
 def override_get_async_session(db_session):
     async def _override_get_async_session():
@@ -65,8 +65,6 @@ def override_get_async_session(db_session):
     return _override_get_async_session
 
 
-# Мы не можем создать 2 приложения (app) - это приведет к ошибкам.
-# Поэтому, на время запуска тестов мы подменяем там зависимость с сессией
 @pytest.fixture(scope="function")
 def test_app(override_get_async_session):
     from src.configurations.database import get_async_session
@@ -77,7 +75,7 @@ def test_app(override_get_async_session):
     return app
 
 
-# создаем асинхронного клиента для ручек
+# Creating an asynchronous client
 @pytest_asyncio.fixture(scope="function")
 async def async_client(test_app):
     async with httpx.AsyncClient(app=test_app, base_url="http://127.0.0.1:8000") as test_client:

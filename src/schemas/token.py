@@ -1,3 +1,7 @@
+"""
+A model for validating the token data.
+"""
+
 from pydantic import BaseModel
 
 __all__ = ["TokenInfo"]

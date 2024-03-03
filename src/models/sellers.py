@@ -1,3 +1,13 @@
+"""
+The model for the "Seller" entity. Contains information about seller.
+id - seller id
+first_name - seller's name
+last_name - seller's last name
+email - seller's email address
+password - seller's password
+books - the list of books that the seller sells
+"""
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

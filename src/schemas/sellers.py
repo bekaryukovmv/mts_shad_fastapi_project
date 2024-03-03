@@ -1,3 +1,12 @@
+"""
+A model for validating incoming and outgoing data of the "Seller" entity.
+BaseSeller: the base class of "Sellers", which contains fields that are in all descendant classes.
+IncomingSeller: a class for validating incoming data.
+ReturnedSeller: a class validating outgoing data.
+ReturnedAllSellers: a class for returning a list of sellers.
+ReturnedSellerWithBooks: a class for returning the seller with the books he has.
+"""
+
 from pydantic import BaseModel, Field, field_validator
 from pydantic_core import PydanticCustomError
 from email_validator import validate_email, EmailNotValidError
@@ -7,13 +16,12 @@ from .books import ReturnedBook
 __all__ = ["IncomingSeller", "ReturnedAllSellers", "ReturnedSeller", "ReturnedSellerWithBooks", "BaseSeller"]
 
 
-# Базовый класс "Продавцы", содержащий поля, которые есть во всех классах-наследниках.
 class BaseSeller(BaseModel):
     first_name: str
     last_name: str
     email: str
 
-    @field_validator("email")  # Валидатор, проверяет что дата не слишком древняя
+    @field_validator("email")  # validate email
     @staticmethod
     def validate(val: str):
         try:
@@ -24,17 +32,14 @@ class BaseSeller(BaseModel):
             raise PydanticCustomError("Validation error", str(e))
 
 
-# Класс для валидации входящих данных. Не содержит id так как его присваивает БД.
 class IncomingSeller(BaseSeller):
     password: str
 
 
-# Класс, валидирующий исходящие данные. Он уже содержит id
 class ReturnedSeller(BaseSeller):
     id: int
 
 
-# Класс для возврата массива объектов "Книга"
 class ReturnedAllSellers(BaseModel):
     sellers: list[ReturnedSeller]
 
