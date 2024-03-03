@@ -26,6 +26,7 @@ async def create_book(
         author=book.author,
         year=book.year,
         count_pages=book.count_pages,
+        seller_id=book.seller_id,
     )
     session.add(new_book)
     await session.flush()

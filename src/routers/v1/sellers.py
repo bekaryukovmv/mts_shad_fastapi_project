@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, Response, status
 from icecream import ic
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.schemas import IncomingSeller, ReturnedAllSellers, CertainSeller
+from src.schemas import IncomingSeller,ReturnedSeller, ReturnedAllSellers, CertainSeller
 from fastapi.responses import ORJSONResponse
 
 from src.configurations.database import get_async_session
@@ -18,7 +19,7 @@ sellers_router = APIRouter(tags=["sellers"], prefix="/sellers")
 DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 
 #Ручка для создания продавца, возвращает созданного продавца
-@sellers_router.post("/",response_model=CertainSeller, status_code=status.HTTP_201_CREATED)
+@sellers_router.post("/",response_model=ReturnedSeller, status_code=status.HTTP_201_CREATED)
 async def create_seller(
     seller: IncomingSeller, session: DBSession
 ):
@@ -44,34 +45,35 @@ async def get_all_sellers(session: DBSession):
 #Ручка для получения конrретного продавца
 @sellers_router.get("/{seller_id}", response_model=CertainSeller)
 async def get_seller(seller_id: int, session: DBSession):
-    res_seller = await session.get(Seller, seller_id)
-    query_books = select(Book).where(Book.parent_id == seller_id)
-    res_books = await session.execute(query_books)
-    seller_books = res_books.scalars().all()
-    
-    seller_date = {
-        "id": res_seller.id,
-        "first_name": res_seller.first_name,
-        "last_name": res_seller.last_name,
-        "email": res_seller.email,
-        "books": seller_books
-    }
+    res = await session.execute(
+        select(Seller).where(Seller.id == seller_id).options(selectinload(Seller.books))
+    )
+    seller = res.scalar_one_or_none()
+    return seller
 
-    return seller_date
 
 
 #Ручка для обновления данных о продавце
-@sellers_router.put("/{seller_id}", response_model=CertainSeller)
-async def update_seller(seller_id: int, seller: CertainSeller):
-    if _ := fake_sellers.get(seller_id, None):
-        fake_sellers[seller_id] = seller
+@sellers_router.put("/{seller_id}", response_model=ReturnedSeller)
+async def update_seller(seller_id: int, seller_data: ReturnedSeller, session: DBSession):
+    if updated_seller := await session.get(Seller, seller_id):
+        updated_seller.first_name = seller_data.first_name
+        updated_seller.last_name = seller_data.last_name
+        updated_seller.email = seller_data.email
 
-    return fake_sellers[seller_id]
+        await session.flush()
+
+        return updated_seller
+
+    return Response(status_code=status.HTTP_404_NOT_FOUND)
 
 #Ручка для удаления продавцов
 #TODO надо также при удаление продавца реализовать удаление соотвествующих книг
 @sellers_router.delete("/{seller_id}")
-async def delete_seller(seller_id: int):
-    deleted_seller = fake_sellers.pop(seller_id, -1)
-    ic(deleted_seller)
+async def delete_seller(seller_id: int, session: DBSession):
+    deleted_seller = await session.get(Seller, seller_id)
+    ic(deleted_seller)  # Красивая и информативная замена для print. Полезна при отладке.
+    if deleted_seller:
+        await session.delete(deleted_seller)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator # EmailStr
 from pydantic_core import PydanticCustomError
 
 from .books import ReturnedBook
 
-__all__ = ["IncomingSeller", "ReturnedAllSellers", "CertainSeller"]
+__all__ = ["IncomingSeller", "ReturnedSeller", "ReturnedAllSellers", "CertainSeller"]
 
 #Базовый класс "Продавцы"
 class BaseSeller(BaseModel):
@@ -15,9 +15,13 @@ class BaseSeller(BaseModel):
 class IncomingSeller(BaseSeller):
     password: str
 
+# Класс для валидации исходящих данных. Уже содержит id
+class ReturnedSeller(BaseSeller):
+    id: int
+
 #Класс для возврата массива объектов "Продавец"
 class ReturnedAllSellers(BaseModel):
-    sellers: list[BaseSeller]
+    sellers: list[ReturnedSeller]
 
 #Класс для возврата конкретной/подробной информации об одном продавце 
 class CertainSeller(BaseSeller):
