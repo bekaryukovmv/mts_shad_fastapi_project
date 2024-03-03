@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator # EmailStr
+from pydantic import BaseModel, EmailStr
 from pydantic_core import PydanticCustomError
 
 from .books import ReturnedBook
@@ -9,7 +9,7 @@ __all__ = ["IncomingSeller", "ReturnedSeller", "ReturnedAllSellers", "CertainSel
 class BaseSeller(BaseModel):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
 
 #Класс для валидации входящих данных. Без id так как его присваивает БД и он фигурирует в исходящих
 class IncomingSeller(BaseSeller):
