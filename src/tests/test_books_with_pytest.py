@@ -30,7 +30,7 @@ async def test_create_book(async_client):
         "year": 2007,
     }
 
-
+ 
 # Тест на ручку получения списка книг
 @pytest.mark.asyncio
 async def test_get_books(db_session, async_client):
@@ -127,3 +127,4 @@ async def test_update_book(db_session, async_client):
     assert res.count_pages == 100
     assert res.year == 2007
     assert res.id == book.id
+     
