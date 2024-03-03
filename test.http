@@ -5,30 +5,30 @@
 # поэтому перешел на этот плагин. Он тоже хорош :-)
 
 # Создаем книгу
-POST http://localhost:8000/books/ HTTP/1.1
+POST http://localhost:8000/api/v1/books/ HTTP/1.1
 content-type: application/json
 
 {
     "title": "Wrong Code",
     "author": "Robert Martin",
-    "pages": 10,
+    "pages": 104,
     "year": 2007
 }
 
 ###
 
 # Получаем список книг
-GET http://localhost:8000/books/ HTTP/1.1
+GET http://localhost:8000/api/v1/books/ HTTP/1.1
 
 ###
 
 # Получаем одну книгу по ее ИД
-GET http://localhost:8000/books/0 HTTP/1.1
+GET http://localhost:8000/api/v1/books/1 HTTP/1.1
 
 ###
 
 # Обновляем поля в данных о книге
-PUT http://localhost:8000/books/0 HTTP/1.1
+PUT http://localhost:8000/api/v1/books/1 HTTP/1.1
 content-type: application/json
 
 {
@@ -42,7 +42,7 @@ content-type: application/json
 ###
 
 # Удаляем книгу
-DELETE http://localhost:8000/books/0 HTTP/1.1
+DELETE http://localhost:8000/api/v1/books/1 HTTP/1.1
 content-type: application/json
 
 ###
