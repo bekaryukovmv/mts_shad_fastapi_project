@@ -138,16 +138,20 @@ async def test_update_seller(db_session, async_client):
     db_session.add(seller)
     await db_session.flush()
 
-    response = await async_client.put(
-        f"/api/v1/sellers/{seller.id}",
-        json={"id": seller.id, "first_name": "Petr", "last_name": "Petrov", "email": "petrov@mail.ru"})
+    new_data = {"id": seller.id,
+                "first_name": "Petr",
+                "last_name": "Petrov",
+                "email": "petrov@mail.ru"
+                }
+    
+    response = await async_client.put(f"/api/v1/sellers/{seller.id}", json=new_data)
 
     assert response.status_code == status.HTTP_200_OK
-    await db_session.flush()
 
-    # Проверяем, что обновились все поля
-    res = await db_session.get(sellers.Seller, seller.id)
-    assert res.id == seller.id
-    assert res.first_name == "Petr"
-    assert res.last_name == "Petrov"
-    assert res.email == "petrov@mail.ru"
+    # Проверяем интерфейс ответа, на который у нас есть контракт.
+    result_data = response.json()
+
+    assert result_data["id"] == seller.id
+    assert result_data["first_name"] == new_data["first_name"]
+    assert result_data["last_name"] == new_data["last_name"]
+    assert result_data["email"] == new_data["email"]
