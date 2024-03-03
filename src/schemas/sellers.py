@@ -22,7 +22,7 @@ class IncomingSeller(BaseSeller):
 
 # Класс, валидирующий исходящие данные. Он уже содержит id
 class ReturnedSeller(BaseSeller):
-    id: int = 1
+    id: int
 
 # Класс, валидирующий исходящие данные.
 class ReturnedSellerBooks(BaseSeller):
