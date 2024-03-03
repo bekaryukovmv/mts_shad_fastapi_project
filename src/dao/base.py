@@ -1,35 +1,30 @@
-from src.configurations.database import get_async_session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy import select, insert, delete
 
+from src.models.base import BaseModel
+
 
 class BaseDAO:
-    model = None
+    model: BaseModel
 
-    @classmethod
-    async def find_one_or_none(cls, **filter_by):
-        async with get_async_session() as session:
-            query = select(cls.model.__table__.columns).filter_by(**filter_by)
-            result = await session.execute(query)
-            return result.mappings().one_or_none()
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    @classmethod
-    async def find_all(cls, **filter_by):
-        async with get_async_session() as session:
-            query = select(cls.model.__table__.columns).filter_by(**filter_by)
-            result = await session.execute(query)
-            return result.mappings().all()
+    async def find_one_or_none(self, **filter_by):
+        query = select(self.model.__table__.columns).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        return result.mappings().one_or_none()
 
-    @classmethod
-    async def delete(cls, **filter_by):
-        async with get_async_session() as session:
-            query = delete(cls.model).filter_by(**filter_by)
-            await session.execute(query)
-            await session.commit()
+    async def find_all(self, **filter_by):
+        query = select(self.model.__table__.columns).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        return result.mappings().all()
 
-    @classmethod
-    async def add(cls, **data):
-        async with get_async_session() as session:
-            query = insert(cls.model).values(**data)
-            await session.execute(query)
-            await session.commit()
+    async def delete(self, **filter_by):
+        query = delete(self.model).filter_by(**filter_by)
+        await self.session.execute(query)
+
+    async def add(self, **data):
+        query = insert(self.model).values(**data)
+        await self.session.execute(query)

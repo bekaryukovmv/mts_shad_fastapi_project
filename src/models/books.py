@@ -34,6 +34,6 @@ class Book(BaseModel):
     count_pages: Mapped[int]
     created_at: Mapped[created_at]
     # Параметр ondelete=CASCADE для того, чтобы при удалении продавца все книги продавца удалялись автоматически
-    seller_id: Mapped[int] = mapped_column(ForeignKey("sellers_table.id", ondelete="CASCADE"))
+    seller_id: Mapped[int] = mapped_column(ForeignKey("sellers_table.id", ondelete="CASCADE"), nullable=True)
 
     seller: Mapped["Seller"] = relationship(back_populates="books")

@@ -8,56 +8,54 @@ import asyncio
 import httpx
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy import NullPool
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 
-from src.configurations.settings import settings
+from src.configurations import global_init
+from src.configurations.settings import settings, Settings
 from src.models import books  # noqa
 from src.models.base import BaseModel
-from src.models.books import Book  # noqa F401
-
-# Переопределяем движок для запуска тестов и подключаем его к тестовой базе.
-# Это решает проблему с сохранностью данных в основной базе приложения.
-# Фикстуры тестов их не зачистят.
-# и обеспечивает чистую среду для запуска тестов. В ней не будет лишних записей.
-async_test_engine = create_async_engine(
-    settings.database_test_url,
-    echo=True,
-)
-
-# Создаем фабрику сессий для тестового движка.
-async_test_session = async_sessionmaker(async_test_engine, expire_on_commit=False, autoflush=False)
+from src.models.books import Book, Seller  # noqa F401
 
 
-# Получаем цикл событий для асинхорнного потока выполнения задач.
+# Получаем цикл событий для асинхронного потока выполнения задач
+# @pytest.fixture(scope="session")
+# def event_loop():
+#     """Create an instance of the default event loop for each test case."""
+#     # loop = asyncio.get_event_loop_policy().new_event_loop()  # TODO
+#     loop = asyncio.get_event_loop()
+#     yield loop
+#     loop.close()
+
+
 @pytest_asyncio.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for each test case."""
-    # loop = asyncio.new_event_loop() # На разных версиях питона и разных ОС срабатывает по разному
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()
+async def engine():
+    global_init()
+    engine = create_async_engine(
+        settings.database_test_url,
+        poolclass=NullPool,
+    )
+
+    async with engine.begin() as conn:
+        await conn.run_sync(BaseModel.metadata.create_all)
+
+    yield engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(BaseModel.metadata.drop_all)
+
+    await engine.dispose()
 
 
-# Создаем таблицы в тестовой БД. Предварительно удаляя старые.
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def create_tables() -> None:
-    """Create tables in DB."""
-    async with async_test_engine.begin() as connection:
-        await connection.run_sync(BaseModel.metadata.drop_all)
-        await connection.run_sync(BaseModel.metadata.create_all)
+@pytest_asyncio.fixture()
+async def db_session(engine: AsyncEngine):
+    async with AsyncSession(engine, expire_on_commit=False) as _session, _session.begin():
+        yield _session
+        await _session.rollback()
 
 
-# Создаем сессию для БД используемую для тестов
-@pytest_asyncio.fixture(scope="function")
-async def db_session():
-    async with async_test_engine.connect() as connection:
-        async with async_test_session(bind=connection) as session:
-            yield session
-            await session.rollback()
-
-
-# Коллбэк для переопределения сессии в приложении
-@pytest.fixture(scope="function")
+# Callback для переопределения сессии в приложении
+@pytest.fixture()
 def override_get_async_session(db_session):
     async def _override_get_async_session():
         yield db_session
@@ -67,7 +65,7 @@ def override_get_async_session(db_session):
 
 # Мы не можем создать 2 приложения (app) - это приведет к ошибкам.
 # Поэтому, на время запуска тестов мы подменяем там зависимость с сессией
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def test_app(override_get_async_session):
     from src.configurations.database import get_async_session
     from src.main import app
@@ -77,8 +75,42 @@ def test_app(override_get_async_session):
     return app
 
 
-# создаем асинхронного клиента для ручек
-@pytest_asyncio.fixture(scope="function")
+# Создаем асинхронного клиента для ручек
+@pytest_asyncio.fixture()
 async def async_client(test_app):
-    async with httpx.AsyncClient(app=test_app, base_url="http://127.0.0.1:8000") as test_client:
+    async with httpx.AsyncClient(app=test_app, base_url="http://test") as test_client:
+        yield test_client
+
+
+# Создание авторизованного клиента для тестов
+@pytest_asyncio.fixture()
+async def async_authenticated_client(test_app):
+    async with httpx.AsyncClient(app=test_app, base_url="http://test") as test_client:
+        # Данные для аутентификации
+        test_email = "test@example.com"
+        test_password = "test_password"
+
+        # Регистрация нового продавца
+        await test_client.post("/api/v1/seller/", json={
+            "email": test_email,
+            "password": test_password,
+            "first_name": "Имя",
+            "last_name": "Фамилия"
+        })
+
+        # Аутентификация - получение токенов
+        res = await test_client.post("/api/v1/token/", json={
+              "email": test_email,
+              "password": test_password
+        })
+
+        res_json = res.json()
+
+        # Добавление токена в заголовок клиента
+        access_token = res_json["access_token"]
+        test_client.headers["Authorization"] = "Bearer " + access_token
+
+        # Сохранение refresh токена в куки клиента
+        refresh_token = res_json["refresh_token"]
+        test_client.cookies["CSRF"] = refresh_token
         yield test_client

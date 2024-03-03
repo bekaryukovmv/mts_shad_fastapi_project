@@ -3,26 +3,29 @@ from typing import Annotated, Dict, Sequence
 from fastapi import APIRouter, Depends, Response, status, HTTPException
 from icecream import ic
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.configurations.database import get_async_session
+from src.dao import SellerDAO
 from src.dao.book import BookDAO
-from src.lib.auth import current_seller
+from src.lib.auth import Auth, current_seller
 from src.models.books import Book, Seller
 from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 
 books_router = APIRouter(tags=["books"], prefix="/books")
 
-# Больше не симулируем хранилище данных. Подключаемся к реальному, через сессию.
-DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 
+def get_book_dao() -> BookDAO:
+    raise NotImplementedError
+
+
+BookDAODep = Annotated[BookDAO, Depends(get_book_dao)]
+AuthenticatedSeller = Annotated[Seller, Depends(current_seller)]
 
 # Ручка для создания записи о книге в БД. Возвращает созданную книгу.
 @books_router.post(
     "/", status_code=status.HTTP_201_CREATED,
 )  # Прописываем модель ответа
-async def create_book(book: IncomingBook, seller: Seller = Depends(current_seller)) -> ReturnedBook:
-    new_book = await BookDAO.add_new_book(
+async def create_book(book: IncomingBook, dao: BookDAODep, seller: AuthenticatedSeller) -> ReturnedBook:
+    new_book = await dao.add_new_book(
         title=book.title,
         author=book.author,
         year=book.year,
@@ -34,33 +37,25 @@ async def create_book(book: IncomingBook, seller: Seller = Depends(current_selle
 
 # Ручка, возвращающая все книги
 @books_router.get("/", response_model=ReturnedAllBooks)
-async def get_all_books(session: DBSession):
+async def get_all_books(dao: BookDAODep):
     # Хотим видеть формат:
     # books: [{"id": 1, "title": "Blabla", ...}, {"id": 2, ...}]
-    query = select(Book)
-    res = await session.execute(query)
-    books = res.scalars().all()
-    return {"books": books}
+    res = await dao.find_all()
+    # books = res.scalars().all()
+    return {"books": res}
 
 
 # Ручка для получения книги по ее ИД
 @books_router.get("/{book_id}")
-async def get_book(book_id: int, session: DBSession) -> ReturnedBook:
-    res = await session.get(Book, book_id)
+async def get_book(book_id: int, dao: BookDAODep):
+    res = await dao.find_one_or_none(id=book_id)
     return res
 
 
 # Ручка для удаления книги
-@books_router.delete("/{book_id}")
-async def delete_book(book_id: int, session: DBSession):
-    deleted_book = await session.get(Book, book_id)
-    ic(deleted_book)  # Красивая и информативная замена для print. Полезна при отладке.
-    if deleted_book:
-        await session.delete(deleted_book)
-
-    return Response(
-        status_code=status.HTTP_204_NO_CONTENT
-    )  # Response может вернуть текст и метаданные.
+@books_router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book(book_id: int, dao: BookDAODep):
+    await dao.delete(id=book_id)
 
 
 # Ручка для обновления данных о книге
@@ -68,12 +63,12 @@ async def delete_book(book_id: int, session: DBSession):
 async def update_book(
     book_id: int,
     new_data: IncomingBook,
-    seller: Seller = Depends(current_seller),
+    dao: BookDAODep,
+    seller: AuthenticatedSeller,
 ):
-    # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его.
-    book = await BookDAO.find_one_or_none(id=book_id)
+    book = await dao.find_one_or_none(id=book_id)
     if book and book.seller_id == seller.id:
-        updated_book = await BookDAO.update_book(book_id=book_id, new_data=new_data)
+        updated_book = await dao.update_book(book_id=book_id, new_data=new_data)
 
         return updated_book
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Такая книга не существует")
