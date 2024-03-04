@@ -3,29 +3,24 @@ from typing import List, Annotated
 from fastapi import APIRouter, Depends, status, HTTPException
 from src.lib.auth import current_seller, Auth, hash_password
 from src.models.books import Seller
-from src.dao import SellerDAO
 from src.schemas.seller import SellerReg, BaseSeller, SellerUpdate, SellerDTO
+from src.routers.dependency_stubs import SellerDAODep
 
 seller_router = APIRouter(tags=["seller"], prefix="/seller")
 
-
-def get_seller_dao() -> SellerDAO:
-    raise NotImplementedError
-
-
-SellerDAODep = Annotated[SellerDAO, Depends(get_seller_dao)]
 AuthenticatedSeller = Annotated[Seller, Depends(current_seller)]
 
 
 @seller_router.post("/", status_code=status.HTTP_201_CREATED)
-async def register_seller(seller_auth: SellerReg, dao: SellerDAODep) -> None:
+async def register_seller(seller_auth: SellerReg, dao: SellerDAODep) -> BaseSeller:
     seller = await dao.find_one_or_none(email=seller_auth.email)
     if seller:
         # Пользователь существует
         raise HTTPException(status.HTTP_409_CONFLICT, "Продавец с таким email уже зарегистрирован")
     hashed_password = hash_password(seller_auth.password)
-    await dao.add(email=seller_auth.email, password=hashed_password,
-                  first_name=seller_auth.first_name, last_name=seller_auth.last_name)
+    new_seller = await dao.create_seller(email=seller_auth.email, password=hashed_password,
+                                         first_name=seller_auth.first_name, last_name=seller_auth.last_name)
+    return new_seller
 
 
 @seller_router.get("/")
@@ -48,6 +43,6 @@ async def update_seller_info(new_data: SellerUpdate, seller_id: int, dao: Seller
     return seller_info
 
 
-@seller_router.delete("/{seller_id}", status_code=status.HTTP_202_ACCEPTED)
+@seller_router.delete("/{seller_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_seller(seller_id: int, dao: SellerDAODep) -> None:
     await dao.delete(id=seller_id)

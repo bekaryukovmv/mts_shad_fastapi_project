@@ -10,6 +10,13 @@ from src.schemas.seller import SellerDTO, SellerUpdate, BaseSeller
 class SellerDAO(BaseDAO):
     model = Seller
 
+    async def create_seller(self, **data):
+        new_seller = self.model(**data)
+        self.session.add(new_seller)
+        await self.session.flush()
+        result_dto = BaseSeller.model_validate(new_seller, from_attributes=True)
+        return result_dto
+
     async def select_seller_with_books(self, seller_id: int):
         query = (
             select(Seller).where(Seller.id == seller_id)

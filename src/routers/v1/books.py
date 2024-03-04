@@ -1,24 +1,16 @@
 from typing import Annotated, Dict, Sequence
 
 from fastapi import APIRouter, Depends, Response, status, HTTPException
-from icecream import ic
-from sqlalchemy import select
-
-from src.dao import SellerDAO
-from src.dao.book import BookDAO
 from src.lib.auth import Auth, current_seller
 from src.models.books import Book, Seller
 from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
+from src.routers.dependency_stubs import BookDAODep
+
 
 books_router = APIRouter(tags=["books"], prefix="/books")
 
-
-def get_book_dao() -> BookDAO:
-    raise NotImplementedError
-
-
-BookDAODep = Annotated[BookDAO, Depends(get_book_dao)]
 AuthenticatedSeller = Annotated[Seller, Depends(current_seller)]
+
 
 # Ручка для создания записи о книге в БД. Возвращает созданную книгу.
 @books_router.post(

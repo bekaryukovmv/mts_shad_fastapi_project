@@ -7,15 +7,9 @@ from src.lib.auth import Auth, hash_password, access_security, refresh_security
 from src.dao import SellerDAO
 from src.schemas.seller import SellerAuth
 from src.schemas.token import RefreshToken, AccessToken
+from src.routers.dependency_stubs import SellerDAODep
 
 token_router = APIRouter(tags=["token"], prefix="/token")
-
-
-def get_seller_dao() -> SellerDAO:
-    raise NotImplementedError
-
-
-SellerDAODep = Annotated[SellerDAO, Depends(get_seller_dao)]
 
 
 @token_router.post("/")
@@ -25,14 +19,14 @@ async def get_seller_tokens(seller_auth: SellerAuth, dao: SellerDAODep) -> Refre
         # Пользователь ввёл неверные данные для аутентификации
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный email или пароль")
     # По желанию тут можно добавить подтверждение почты продавца
-    # access_token = access_security.create_access_token({"username": user.email})
-    access_token = "token 1"
-    # refresh_token = refresh_security.create_refresh_token({"username": user.email})
-    refresh_token = "token 1"
+    access_token = access_security.create_access_token({"username": user.email})
+    refresh_token = refresh_security.create_refresh_token({"username": user.email})
     return RefreshToken(access_token=access_token, refresh_token=refresh_token)
 
 
 @token_router.post("/refresh")
 async def get_access_token(auth: JwtAuthorizationCredentials = Security(refresh_security)) -> AccessToken:
+    if not hasattr(auth, 'subject'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Требуется аутентификация")
     access_token = access_security.create_access_token(subject=auth.subject)
     return AccessToken(access_token=access_token)

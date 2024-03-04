@@ -12,6 +12,7 @@ from fastapi_jwt import JwtAuthorizationCredentials, JwtAccessBearer, JwtRefresh
 
 from src.dao import SellerDAO
 from src.models.books import Seller
+from src.routers.dependency_stubs import SellerDAODep
 
 
 # Время действия access и refresh токенов
@@ -31,13 +32,6 @@ refresh_security = JwtRefreshBearer(
     refresh_expires_delta=REFRESH_EXPIRES,
     auto_error=False,
 )
-
-
-def get_seller_dao() -> SellerDAO:
-    raise NotImplementedError
-
-
-SellerDAODep = Annotated[SellerDAO, Depends(get_seller_dao)]
 
 
 class Auth:
@@ -84,4 +78,3 @@ async def current_seller(auth: Annotated[JwtAuthorizationCredentials, Security(a
     if seller is None:
         raise HTTPException(404, "Авторизованный продавец не найден")
     return seller
-
