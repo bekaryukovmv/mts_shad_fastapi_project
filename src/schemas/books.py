@@ -13,9 +13,7 @@ class BaseBook(BaseModel):
 
 # Класс для валидации входящих данных. Не содержит id так как его присваивает БД.
 class IncomingBook(BaseBook):
-    year: int = 2024  # Пример присваивания дефолтного значения
     count_pages: int = Field(
-        alias="pages",
         default=300,
     )  # Пример использования тонкой настройки полей. Передачи в них метаинформации.
 
@@ -31,6 +29,7 @@ class IncomingBook(BaseBook):
 class ReturnedBook(BaseBook):
     id: int
     count_pages: int
+    seller_id: int
 
 
 # Класс для возврата массива объектов "Книга"

@@ -19,6 +19,9 @@ linters-check:
 linters:
 	make isort; make black; make flake8-check
 
+gen_salt:
+	python gen_salt
+
 pytest:
 	pytest -s -vv -x -c=src/pytest.ini src/tests
 

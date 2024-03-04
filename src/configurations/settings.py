@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     db_test_name: str = "fastapi_project_test_db"
     max_connection_count: int = 10
 
+    salt: str
+    secret_key: str
+
+    @property
+    def salt_bytes(self):
+        return self.salt.encode()
+
     @property
     def database_url(self) -> str:
         return f"{self.db_host}/{self.db_name}"

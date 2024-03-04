@@ -1,79 +1,66 @@
-from typing import Annotated
+from typing import Annotated, Dict, Sequence
 
-from fastapi import APIRouter, Depends, Response, status
-from icecream import ic
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from src.configurations.database import get_async_session
-from src.models.books import Book
+from src.lib.auth import Auth, current_seller
+from src.models.books import Book, Seller
+from src.routers.dependency_stubs import BookDAODep
 from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 
 books_router = APIRouter(tags=["books"], prefix="/books")
 
-# Больше не симулируем хранилище данных. Подключаемся к реальному, через сессию.
-DBSession = Annotated[AsyncSession, Depends(get_async_session)]
+AuthenticatedSeller = Annotated[Seller, Depends(current_seller)]
 
 
 # Ручка для создания записи о книге в БД. Возвращает созданную книгу.
-@books_router.post("/", response_model=ReturnedBook, status_code=status.HTTP_201_CREATED)  # Прописываем модель ответа
-async def create_book(
-    book: IncomingBook, session: DBSession
-):  # прописываем модель валидирующую входные данные и сессию как зависимость.
-    # это - бизнес логика. Обрабатываем данные, сохраняем, преобразуем и т.д.
-    new_book = Book(
+@books_router.post(
+    "/", status_code=status.HTTP_201_CREATED,
+)  # Прописываем модель ответа
+async def create_book(book: IncomingBook, dao: BookDAODep, seller: AuthenticatedSeller) -> ReturnedBook:
+    new_book = await dao.add_new_book(
         title=book.title,
         author=book.author,
         year=book.year,
         count_pages=book.count_pages,
+        seller_id=seller.id,
     )
-    session.add(new_book)
-    await session.flush()
-
     return new_book
 
 
 # Ручка, возвращающая все книги
 @books_router.get("/", response_model=ReturnedAllBooks)
-async def get_all_books(session: DBSession):
+async def get_all_books(dao: BookDAODep):
     # Хотим видеть формат:
     # books: [{"id": 1, "title": "Blabla", ...}, {"id": 2, ...}]
-    query = select(Book)
-    res = await session.execute(query)
-    books = res.scalars().all()
-    return {"books": books}
+    res = await dao.find_all()
+    # books = res.scalars().all()
+    return {"books": res}
 
 
 # Ручка для получения книги по ее ИД
-@books_router.get("/{book_id}", response_model=ReturnedBook)
-async def get_book(book_id: int, session: DBSession):
-    res = await session.get(Book, book_id)
+@books_router.get("/{book_id}")
+async def get_book(book_id: int, dao: BookDAODep):
+    res = await dao.find_one_or_none(id=book_id)
     return res
 
 
 # Ручка для удаления книги
-@books_router.delete("/{book_id}")
-async def delete_book(book_id: int, session: DBSession):
-    deleted_book = await session.get(Book, book_id)
-    ic(deleted_book)  # Красивая и информативная замена для print. Полезна при отладке.
-    if deleted_book:
-        await session.delete(deleted_book)
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)  # Response может вернуть текст и метаданные.
+@books_router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book(book_id: int, dao: BookDAODep):
+    await dao.delete(id=book_id)
 
 
 # Ручка для обновления данных о книге
-@books_router.put("/{book_id}")
-async def update_book(book_id: int, new_data: ReturnedBook, session: DBSession):
-    # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его.
-    if updated_book := await session.get(Book, book_id):
-        updated_book.author = new_data.author
-        updated_book.title = new_data.title
-        updated_book.year = new_data.year
-        updated_book.count_pages = new_data.count_pages
-
-        await session.flush()
+@books_router.put("/{book_id}", response_model=ReturnedBook)
+async def update_book(
+    book_id: int,
+    new_data: IncomingBook,
+    dao: BookDAODep,
+    seller: AuthenticatedSeller,
+):
+    book = await dao.find_one_or_none(id=book_id)
+    if book and book.seller_id == seller.id:
+        updated_book = await dao.update_book(book_id=book_id, new_data=new_data)
 
         return updated_book
-
-    return Response(status_code=status.HTTP_404_NOT_FOUND)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Такая книга не существует")
