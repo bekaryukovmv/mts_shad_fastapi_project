@@ -11,7 +11,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.configurations.settings import settings
-from src.models import books  # noqa
+from src.models import books, sellers  # noqa
 from src.models.base import BaseModel
 from src.models.books import Book  # noqa F401
 
@@ -82,3 +82,11 @@ def test_app(override_get_async_session):
 async def async_client(test_app):
     async with httpx.AsyncClient(app=test_app, base_url="http://127.0.0.1:8000") as test_client:
         yield test_client
+
+
+@pytest_asyncio.fixture()
+async def seller_id(db_session):
+    seller = sellers.Seller(first_name="Sasha", last_name="alexander", email="sasha@mail.com", password="sasha2002")
+    db_session.add(seller)
+    await db_session.flush()
+    yield seller.id
