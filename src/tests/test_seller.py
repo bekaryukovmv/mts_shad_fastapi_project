@@ -1,5 +1,6 @@
-from fastapi import status
 import pytest
+from fastapi import status
+
 from src.models.books import Seller
 
 

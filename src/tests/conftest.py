@@ -3,13 +3,13 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 from src.configurations.settings import settings
+from src.main import create_app
 from src.models import books  # noqa
 from src.models.base import BaseModel
 from src.models.books import Book, Seller  # noqa F401
-from src.main import create_app
 from src.routers import dependency_stubs as stubs
 
 

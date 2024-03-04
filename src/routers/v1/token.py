@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, status, HTTPException, Security, Depends
+from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi_jwt import JwtAuthorizationCredentials
 
-from src.lib.auth import Auth, hash_password, access_security, refresh_security
 from src.dao import SellerDAO
-from src.schemas.seller import SellerAuth
-from src.schemas.token import RefreshToken, AccessToken
+from src.lib.auth import Auth, access_security, hash_password, refresh_security
 from src.routers.dependency_stubs import SellerDAODep
+from src.schemas.seller import SellerAuth
+from src.schemas.token import AccessToken, RefreshToken
 
 token_router = APIRouter(tags=["token"], prefix="/token")
 

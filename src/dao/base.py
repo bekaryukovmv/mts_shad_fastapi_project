@@ -1,6 +1,5 @@
+from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from sqlalchemy import select, insert, delete
 
 from src.models.base import BaseModel
 

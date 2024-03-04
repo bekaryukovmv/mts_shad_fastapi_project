@@ -1,10 +1,9 @@
-from src.dao.base import BaseDAO
-
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
+from src.dao.base import BaseDAO
 from src.models.books import Seller
-from src.schemas.seller import SellerDTO, SellerUpdate, BaseSeller
+from src.schemas.seller import BaseSeller, SellerDTO, SellerUpdate
 
 
 class SellerDAO(BaseDAO):

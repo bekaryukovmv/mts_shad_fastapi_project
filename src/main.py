@@ -6,10 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.configurations import get_async_engine
 from src.configurations.database import create_db_and_tables, delete_db_and_tables
-from src.routers import v1_router
-
-from src.routers.dependencies import get_seller_dao, get_book_dao
 from src.routers import dependency_stubs as stubs
+from src.routers import v1_router
+from src.routers.dependencies import get_book_dao, get_seller_dao
 
 
 @asynccontextmanager

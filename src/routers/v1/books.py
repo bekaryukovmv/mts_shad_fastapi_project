@@ -1,11 +1,11 @@
 from typing import Annotated, Dict, Sequence
 
-from fastapi import APIRouter, Depends, Response, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+
 from src.lib.auth import Auth, current_seller
 from src.models.books import Book, Seller
-from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 from src.routers.dependency_stubs import BookDAODep
-
+from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 
 books_router = APIRouter(tags=["books"], prefix="/books")
 

@@ -1,6 +1,6 @@
 from src.dao.base import BaseDAO
 from src.models.books import Book
-from src.schemas import ReturnedBook, IncomingBook
+from src.schemas import IncomingBook, ReturnedBook
 
 
 class BookDAO(BaseDAO):

@@ -1,10 +1,11 @@
-from typing import List, Annotated
+from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, status, HTTPException
-from src.lib.auth import current_seller, Auth, hash_password
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from src.lib.auth import Auth, current_seller, hash_password
 from src.models.books import Seller
-from src.schemas.seller import SellerReg, BaseSeller, SellerUpdate, SellerDTO
 from src.routers.dependency_stubs import SellerDAODep
+from src.schemas.seller import BaseSeller, SellerDTO, SellerReg, SellerUpdate
 
 seller_router = APIRouter(tags=["seller"], prefix="/seller")
 

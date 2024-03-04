@@ -1,19 +1,14 @@
+from datetime import timedelta
 from typing import Annotated
 
-from fastapi import HTTPException, Depends
-
 import bcrypt
-from fastapi import Security
+from fastapi import Depends, HTTPException, Security
+from fastapi_jwt import JwtAccessBearer, JwtAuthorizationCredentials, JwtRefreshBearer
 
 from src.configurations.settings import settings
-from datetime import timedelta
-
-from fastapi_jwt import JwtAuthorizationCredentials, JwtAccessBearer, JwtRefreshBearer
-
 from src.dao import SellerDAO
 from src.models.books import Seller
 from src.routers.dependency_stubs import SellerDAODep
-
 
 # Время действия access и refresh токенов
 ACCESS_EXPIRES = timedelta(minutes=15)
