@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     def database_test_url(self) -> str:
         return f"{self.db_host}/{self.db_test_name}"
 
-    model_config = SettingsConfigDict(env_file="../../.env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()
