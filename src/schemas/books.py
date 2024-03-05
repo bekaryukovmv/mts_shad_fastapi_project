@@ -26,6 +26,8 @@ class IncomingBook(BaseBook):
             raise PydanticCustomError("Validation error", "Year is wrong!")
         return val
 
+    seller_id: int = 0
+
 
 # Класс, валидирующий исходящие данные. Он уже содержит id
 class ReturnedBook(BaseBook):
@@ -35,4 +37,4 @@ class ReturnedBook(BaseBook):
 
 # Класс для возврата массива объектов "Книга"
 class ReturnedAllBooks(BaseModel):
-    books: list[ReturnedBook]
+    books: list[ReturnedBook] = []

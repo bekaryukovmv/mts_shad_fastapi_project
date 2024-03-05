@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-
 from src.configurations.database import create_db_and_tables, delete_db_and_tables, global_init
 from src.routers import v1_router
 
@@ -44,3 +43,7 @@ def _configure():
 
 
 _configure()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
