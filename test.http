@@ -17,6 +17,28 @@ content-type: application/json
 
 ###
 
+# Создаем продажника
+POST http://localhost:8000/api/v1/sellers/ HTTP/1.1
+content-type: application/json
+
+{
+    "first_name": "Wrong Code",
+    "last_name": "Robert Martin",
+    "email": "21011975mail@gmail.com",
+    "password": "Hello_Kitty",
+    "books": [
+        {
+            "title": "Wrong Code",
+            "author": "Robert Martin",
+            "pages": 104,
+            "year": 2007
+        }
+        ]
+}
+
+###
+
+
 # Получаем список книг
 GET http://localhost:8000/api/v1/books/ HTTP/1.1
 
