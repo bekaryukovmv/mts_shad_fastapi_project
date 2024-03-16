@@ -6,43 +6,43 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.configurations.database import get_async_session
-from src.models.tables import Book
-from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
+from src.models.tables import Seller
+from src.schemas import IncomingSeller, ReturnedAllSellers, ReturnedSeller
 
-books_router = APIRouter(tags=["books"], prefix="/books")
+sellers_router = APIRouter(tags=["sellers"], prefix="/sellers")
 
 # Больше не симулируем хранилище данных. Подключаемся к реальному, через сессию.
 DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 
 
 # Ручка для создания записи о книге в БД. Возвращает созданную книгу.
-@books_router.post("/", response_model=ReturnedBook, status_code=status.HTTP_201_CREATED)  # Прописываем модель ответа
-async def create_book(
-    book: IncomingBook, session: DBSession
+@sellers_router.post("/", response_model=ReturnedSeller, status_code=status.HTTP_201_CREATED)  # Прописываем модель ответа
+async def create_seller(
+    seller: IncomingSeller, session: DBSession
 ):  # прописываем модель валидирующую входные данные и сессию как зависимость.
     # это - бизнес логика. Обрабатываем данные, сохраняем, преобразуем и т.д.
-    new_book = Book(
-        title=book.title,
-        author=book.author,
-        year=book.year,
-        count_pages=book.count_pages,
-        seller_id=book.seller_id
+    new_seller = Seller(
+        first_name=seller.first_name,
+        last_name=seller.last_name,
+        email=seller.email,
+        password=seller.password,
     )
-    session.add(new_book)
+    session.add(new_seller)
     await session.flush()
 
-    return new_book
+    return new_seller
 
 
 # Ручка, возвращающая все книги
-@books_router.get("/", response_model=ReturnedAllBooks)
-async def get_all_books(session: DBSession):
+@sellers_router.get("/", response_model=ReturnedAllSellers)
+async def get_all_sellers(session: DBSession):
     # Хотим видеть формат:
     # books: [{"id": 1, "title": "Blabla", ...}, {"id": 2, ...}]
-    query = select(Book)
+    query = select(Seller)
     res = await session.execute(query)
-    books = res.scalars().all()
-    return {"books": books}
+    sellers = res.scalars().all()
+    return {"sellers": sellers}
+"""""
 
 
 # Ручка для получения книги по ее ИД
@@ -78,3 +78,4 @@ async def update_book(book_id: int, new_data: ReturnedBook, session: DBSession):
         return updated_book
 
     return Response(status_code=status.HTTP_404_NOT_FOUND)
+"""
