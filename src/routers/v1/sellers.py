@@ -42,40 +42,39 @@ async def get_all_sellers(session: DBSession):
     res = await session.execute(query)
     sellers = res.scalars().all()
     return {"sellers": sellers}
-"""""
+
 
 
 # Ручка для получения книги по ее ИД
-@books_router.get("/{book_id}", response_model=ReturnedBook)
-async def get_book(book_id: int, session: DBSession):
-    res = await session.get(Book, book_id)
+@sellers_router.get("/{seller_id}", response_model=ReturnedSeller)
+async def get_seller(seller_id: int, session: DBSession):
+    res = await session.get(Seller, seller_id)
     return res
 
 
 # Ручка для удаления книги
-@books_router.delete("/{book_id}")
-async def delete_book(book_id: int, session: DBSession):
-    deleted_book = await session.get(Book, book_id)
-    ic(deleted_book)  # Красивая и информативная замена для print. Полезна при отладке.
-    if deleted_book:
-        await session.delete(deleted_book)
+@sellers_router.delete("/{seller_id}")
+async def delete_selller(seller_id: int, session: DBSession):
+    delete_selller = await session.get(Seller, seller_id)
+    ic(delete_selller)  # Красивая и информативная замена для print. Полезна при отладке.
+    if delete_selller:
+        await session.delete(delete_selller)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # Response может вернуть текст и метаданные.
 
 
 # Ручка для обновления данных о книге
-@books_router.put("/{book_id}")
-async def update_book(book_id: int, new_data: ReturnedBook, session: DBSession):
+@sellers_router.put("/{seller_id}")
+async def update_seller(seller_id: int, new_data: ReturnedSeller, session: DBSession):
     # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его.
-    if updated_book := await session.get(Book, book_id):
-        updated_book.author = new_data.author
-        updated_book.title = new_data.title
-        updated_book.year = new_data.year
-        updated_book.count_pages = new_data.count_pages
+    if updated_seller := await session.get(Seller, seller_id):
+        updated_seller.first_name = new_data.first_name
+        updated_seller.last_name = new_data.last_name
+        updated_seller.email = new_data.email
+        updated_seller.password = new_data.password
 
         await session.flush()
 
-        return updated_book
+        return updated_seller
 
     return Response(status_code=status.HTTP_404_NOT_FOUND)
-"""

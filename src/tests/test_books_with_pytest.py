@@ -2,7 +2,7 @@ import pytest
 from fastapi import status
 from sqlalchemy import select
 
-from src.models import books
+from src.models import tables
 
 result = {
     "books": [
@@ -36,8 +36,8 @@ async def test_create_book(async_client):
 async def test_get_books(db_session, async_client):
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
-    book_2 = books.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104)
+    book = tables.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
+    book_2 = tables.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104)
 
     db_session.add_all([book, book_2])
     await db_session.flush()
@@ -62,8 +62,8 @@ async def test_get_books(db_session, async_client):
 async def test_get_single_book(db_session, async_client):
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
-    book_2 = books.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104)
+    book = tables.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
+    book_2 = tables.Book(author="Lermontov", title="Mziri", year=1997, count_pages=104)
 
     db_session.add_all([book, book_2])
     await db_session.flush()
@@ -87,7 +87,7 @@ async def test_get_single_book(db_session, async_client):
 async def test_delete_book(db_session, async_client):
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
+    book = tables.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
 
     db_session.add(book)
     await db_session.flush()
@@ -97,7 +97,7 @@ async def test_delete_book(db_session, async_client):
     assert response.status_code == status.HTTP_204_NO_CONTENT
     await db_session.flush()
 
-    all_books = await db_session.execute(select(books.Book))
+    all_books = await db_session.execute(select(tables.Book))
     res = all_books.scalars().all()
     assert len(res) == 0
 
@@ -107,7 +107,7 @@ async def test_delete_book(db_session, async_client):
 async def test_update_book(db_session, async_client):
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = books.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
+    book = tables.Book(author="Pushkin", title="Eugeny Onegin", year=2001, count_pages=104)
 
     db_session.add(book)
     await db_session.flush()
@@ -121,7 +121,7 @@ async def test_update_book(db_session, async_client):
     await db_session.flush()
 
     # Проверяем, что обновились все поля
-    res = await db_session.get(books.Book, book.id)
+    res = await db_session.get(tables.Book, book.id)
     assert res.title == "Mziri"
     assert res.author == "Lermontov"
     assert res.count_pages == 100
