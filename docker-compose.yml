@@ -11,13 +11,16 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      PGDATA: /tmp
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     networks: [fastapi_project]
 
 volumes:
   postgres_data:
+   # external: true
 
 networks:
   fastapi_project:
     name: fastapi_project
+
