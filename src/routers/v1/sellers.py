@@ -74,7 +74,6 @@ async def get_seller(seller_id: int, session: DBSession):
 @sellers_router.delete("/{seller_id}")
 async def delete_seller(seller_id: int, session: DBSession):
     deleted_seller = await session.get(Seller, seller_id)
-    ic(deleted_seller)
     if deleted_seller:
         await session.delete(deleted_seller)
 
