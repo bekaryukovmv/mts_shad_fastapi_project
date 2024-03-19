@@ -1,12 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from icecream import ic
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.configurations.database import get_async_session
 from src.models.books import Book
+
 from src.schemas import IncomingBook, ReturnedAllBooks, ReturnedBook
 
 books_router = APIRouter(tags=["books"], prefix="/books")
@@ -22,13 +24,14 @@ async def create_book(
 ):  # прописываем модель валидирующую входные данные и сессию как зависимость.
     # это - бизнес логика. Обрабатываем данные, сохраняем, преобразуем и т.д.
     new_book = Book(
-        title=book.title,
-        author=book.author,
-        year=book.year,
-        count_pages=book.count_pages,
+        title=book.title, author=book.author, year=book.year, count_pages=book.count_pages, seller_id=book.seller_id
     )
     session.add(new_book)
-    await session.flush()
+
+    try:
+        await session.flush()
+    except IntegrityError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Seller non exists")
 
     return new_book
 
@@ -48,6 +51,10 @@ async def get_all_books(session: DBSession):
 @books_router.get("/{book_id}", response_model=ReturnedBook)
 async def get_book(book_id: int, session: DBSession):
     res = await session.get(Book, book_id)
+
+    if not res:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+
     return res
 
 
@@ -63,16 +70,20 @@ async def delete_book(book_id: int, session: DBSession):
 
 
 # Ручка для обновления данных о книге
-@books_router.put("/{book_id}")
-async def update_book(book_id: int, new_data: ReturnedBook, session: DBSession):
+@books_router.put("/{book_id}", response_model=ReturnedBook)
+async def update_book(book_id: int, new_data: IncomingBook, session: DBSession):
     # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его.
     if updated_book := await session.get(Book, book_id):
         updated_book.author = new_data.author
         updated_book.title = new_data.title
         updated_book.year = new_data.year
         updated_book.count_pages = new_data.count_pages
+        updated_book.seller_id = new_data.seller_id
 
-        await session.flush()
+        try:
+            await session.flush()
+        except IntegrityError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Seller non exists")
 
         return updated_book
 
